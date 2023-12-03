@@ -1,0 +1,48 @@
+import sys
+import pandas as pd
+
+
+def main(argv):
+    task = argv[0]
+    file_path = argv[1]
+    data = []
+    with open(file_path, 'r') as f:
+        for line in f:
+            data.append(line.strip().split(','))
+    df = pd.DataFrame(data[1:], columns=data[0])
+    df = df.sort_values("ID")
+    # idをインデックスにする
+    df = df.set_index("ID")
+    df = df.astype(int)
+    if task == "dropouts":
+        print("ID")
+        dropouts(df)
+    elif task == "top-vs-bottom":
+        print("ID,Mean")
+        top_vs_bottom(df)
+
+def dropouts(df):
+    # 49点以下が2科目以上ある学生を全員抽出
+    for i in range(len(df)):
+        count = 0
+        for j in range(6):
+            if int(df.iloc[i, j]) < 50:
+                count += 1
+        if count >= 2:
+            print(df.iloc[i].name)
+
+def top_vs_bottom(df):
+    # 6科目の平均点を各行ごとに計算
+    df["mean"] = 0
+    for i in range(len(df)):
+        df.iloc[i, 6] = df.iloc[i, :6].mean()
+    df_min = df[df["mean"] == df["mean"].min()]
+    df_max = df[df["mean"] == df["mean"].max()]
+    for i in range(len(df_min)):
+        print(f"{df_min.iloc[i].name},{df_min.iloc[i, 6]:.2f}")
+    for i in range(len(df_max)):
+        print(f"{df_max.iloc[i].name},{df_max.iloc[i, 6]:.2f}")
+
+
+if __name__ == '__main__':
+    main(["top-vs-bottom", "test/in/basic/dropouts-x-5.csv"])
